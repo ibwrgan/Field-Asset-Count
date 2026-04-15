@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TAWAL Asset Field Inspection</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root{
+  --og:#FC4C02;--ogD:#d93e00;--ogG:rgba(252,76,2,0.08);
+  --gr:#253746;--grL:#344f63;
+  --bg:#f0f2f5;--sf:#fff;--sf2:#f7f9fb;--bd:#e2e7ec;--bdL:#eef1f4;
+  --tx:#253746;--txD:#6b8299;--txB:#1a2a37;
+  --gn:#00AC69;--gnB:rgba(0,172,105,0.07);--gnR:rgba(0,172,105,0.22);
+  --rd:#e04848;--rdB:rgba(224,72,72,0.06);--rdR:rgba(224,72,72,0.20);
+  --yw:#c98a00;--ywB:rgba(215,164,50,0.09);--ywR:rgba(215,164,50,0.28);
+  --sk:#00A5B5;--skB:rgba(0,165,181,0.07);--skR:rgba(0,165,181,0.22);
+  --pl:#7E5475;--r:10px;
+  --touch:48px
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;-webkit-text-size-adjust:100%}
+
+/* HEADER */
+header{background:var(--gr);padding:0 16px;display:flex;align-items:center;height:56px;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(37,55,70,.35);gap:10px}
+.logo-wrap{display:flex;align-items:center}
+.hdiv{width:1px;height:24px;background:rgba(255,255,255,.2)}
+.htitle{font-size:11.5px;font-weight:600;color:rgba(255,255,255,.8)}
+.hpills{margin-left:auto;display:flex;gap:6px}
+.hpill{padding:3px 8px;border-radius:20px;font-size:10px;font-weight:600;background:rgba(255,255,255,.1);color:rgba(255,255,255,.65);border:1px solid rgba(255,255,255,.14);font-family:'JetBrains Mono',monospace;white-space:nowrap}
+
+/* MAIN */
+main{padding:14px 12px 100px;max-width:680px;margin:0 auto}
+
+/* CARDS */
+.card{border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;background:var(--sf);margin-bottom:12px;box-shadow:0 1px 4px rgba(37,55,70,.06)}
+.ch{padding:10px 14px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;background:var(--sf2)}
+.ch h3{font-size:10px;font-weight:700;color:var(--txB);text-transform:uppercase;letter-spacing:.5px}
+.cb{padding:14px}
+
+/* FORM */
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fgrid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg.full{grid-column:1/-1}
+label{font-size:10px;font-weight:700;color:var(--txD);text-transform:uppercase;letter-spacing:.5px}
+input[type=text],input[type=date],input[type=number],select,textarea{
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;/* 16px prevents iOS zoom */
+  padding:10px 12px;border:1px solid var(--bd);border-radius:7px;
+  color:var(--tx);background:var(--sf);outline:none;width:100%;
+  -webkit-appearance:none;appearance:none;min-height:var(--touch)
+}
+input[type=number]{font-size:16px}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b8299' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+input:focus,select:focus,textarea:focus{border-color:var(--og);box-shadow:0 0 0 3px var(--ogG)}
+textarea{resize:vertical;min-height:72px;font-size:15px}
+@media(max-width:400px){.fgrid3{grid-template-columns:1fr 1fr}}
+
+
+
+
+/* ASSET CARD */
+.asset-card{border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;background:var(--sf);margin-bottom:12px;box-shadow:0 1px 4px rgba(37,55,70,.06)}
+.asset-card.s-good{border-left:4px solid var(--gn)}
+.asset-card.s-maintenance{border-left:4px solid var(--yw)}
+.asset-card.s-damaged{border-left:4px solid var(--rd)}
+.asset-card.s-missing{border-left:4px solid var(--pl)}
+.asset-card.s-decommissioned{border-left:4px solid var(--txD)}
+.ach{background:var(--gr);padding:10px 13px;display:flex;align-items:center;justify-content:space-between;min-height:52px}
+.ach-left{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.ach-num{font-size:9px;color:rgba(255,255,255,.4);font-family:'JetBrains Mono',monospace;letter-spacing:.06em}
+.ach-id{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--og);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ach-id.empty{color:rgba(255,255,255,.3);font-size:10px;font-style:italic;font-weight:400}
+.ach-right{display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:8px}
+.stag{padding:3px 8px;border-radius:5px;font-size:9.5px;font-weight:700;border:1px solid transparent;white-space:nowrap}
+.stag-good{background:var(--gnB);color:var(--gn);border-color:var(--gnR)}
+.stag-maintenance{background:var(--ywB);color:var(--yw);border-color:var(--ywR)}
+.stag-damaged{background:var(--rdB);color:var(--rd);border-color:var(--rdR)}
+.stag-missing{background:rgba(126,84,117,.08);color:var(--pl);border-color:rgba(126,84,117,.2)}
+.stag-decommissioned{background:rgba(107,130,153,.08);color:var(--txD);border-color:rgba(107,130,153,.2)}
+.btn-remove{background:rgba(224,72,72,.15);border:none;color:#ff6b6b;font-size:16px;width:var(--touch);height:var(--touch);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.acb{padding:14px}
+
+/* SECTION LABEL */
+.sec-label{font-size:9px;font-weight:700;color:var(--og);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px;margin-top:16px;padding-bottom:5px;border-bottom:1px solid var(--ogG);display:flex;align-items:center;gap:5px}
+.sec-label:first-child{margin-top:0}
+.sec-label::before{content:'';display:block;width:3px;height:10px;background:var(--og);border-radius:2px}
+
+/* SCAN */
+.scan-zone{border:2px dashed var(--bd);border-radius:8px;padding:18px 12px;text-align:center;background:var(--sf2);position:relative;cursor:pointer;transition:border-color .15s;margin-bottom:10px;min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.scan-zone.has-img{border-style:solid;border-color:var(--og);background:var(--ogG);padding:10px}
+.scan-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.scan-icon{font-size:28px;margin-bottom:4px;line-height:1}
+.scan-txt{font-size:12px;color:var(--txD);font-weight:600}
+.scan-sub{font-size:10.5px;color:var(--txD);opacity:.7;margin-top:2px}
+.scan-thumb{max-height:90px;max-width:100%;border-radius:5px;object-fit:contain;display:block;margin:0 auto 6px}
+.scan-result{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gn);font-weight:600;margin-top:4px}
+.scan-proc{font-size:11px;color:var(--og);display:none;align-items:center;justify-content:center;gap:6px;margin-top:4px}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(252,76,2,.25);border-top-color:var(--og);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* STATUS BUTTONS - larger for touch */
+.status-btns{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px}
+.sb2{padding:11px 8px;border-radius:8px;border:1.5px solid var(--bd);background:var(--sf);font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;text-align:center;transition:all .15s;color:var(--txD);min-height:var(--touch)}
+.sb2.wide{grid-column:1/-1}
+.sb2.a-good{background:var(--gnB);border-color:var(--gn);color:var(--gn)}
+.sb2.a-maintenance{background:var(--ywB);border-color:var(--yw);color:var(--yw)}
+.sb2.a-damaged{background:var(--rdB);border-color:var(--rd);color:var(--rd)}
+.sb2.a-missing{background:rgba(126,84,117,.08);border-color:var(--pl);color:var(--pl)}
+.sb2.a-decommissioned{background:rgba(107,130,153,.1);border-color:var(--txD);color:var(--txD)}
+
+/* PHOTOS */
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:7px}
+@media(min-width:400px){.photo-grid{grid-template-columns:repeat(4,1fr)}}
+.pt-wrap{position:relative;aspect-ratio:1;border-radius:7px;overflow:hidden;border:1px solid var(--bd)}
+.pt-wrap img{width:100%;height:100%;object-fit:cover}
+.pt-del{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.65);color:#fff;border:none;border-radius:50%;width:24px;height:24px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.add-photo{aspect-ratio:1;border-radius:7px;border:2px dashed var(--bd);background:var(--sf2);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:22px;color:var(--txD);gap:3px;position:relative}
+.add-photo input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.add-photo span{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+
+/* ADD ASSET */
+.btn-add{width:100%;padding:14px;background:var(--sf);border:2px dashed var(--og);border-radius:var(--r);color:var(--og);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:16px;min-height:52px}
+
+/* BOTTOM BAR */
+.botbar{position:fixed;bottom:0;left:0;right:0;background:var(--gr);padding:10px 14px;padding-bottom:calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;box-shadow:0 -3px 16px rgba(0,0,0,.22);z-index:100}
+.btn-pdf{flex:1;padding:13px;background:var(--og);color:#fff;border:none;border-radius:9px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;min-height:var(--touch)}
+.btn-pdf:disabled{opacity:.4;pointer-events:none}
+.btn-json{padding:13px 12px;background:var(--skB);color:var(--sk);border:1px solid var(--skR);border-radius:9px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;min-height:var(--touch);white-space:nowrap}
+.btn-rst{padding:13px 12px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.13);border-radius:9px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;min-height:var(--touch)}
+
+/* TOAST */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--gr);color:#fff;font-weight:700;font-size:13px;z-index:999;opacity:0;transition:all .3s;padding:10px 18px;border-radius:8px;border-left:3px solid var(--og);box-shadow:0 4px 18px rgba(0,0,0,.22);white-space:nowrap;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* PROGRESS OVERLAY */
+.progress-overlay{display:none;position:fixed;inset:0;background:rgba(37,55,70,.88);z-index:9999;flex-direction:column;align-items:center;justify-content:center;gap:18px}
+.progress-overlay.show{display:flex}
+.prog-spin{width:48px;height:48px;border:4px solid rgba(255,255,255,.15);border-top-color:var(--og);border-radius:50%;animation:sp .75s linear infinite}
+.prog-txt{color:#fff;font-size:14px;font-weight:600}
+.prog-bar-wrap{width:240px;height:6px;background:rgba(255,255,255,.15);border-radius:3px;overflow:hidden}
+.prog-bar{height:100%;background:var(--og);border-radius:3px;transition:width .3s;width:0%}
+.prog-sub{color:rgba(255,255,255,.55);font-size:11.5px;font-family:'JetBrains Mono',monospace}
+
+.empty-state{text-align:center;padding:32px 16px;color:var(--txD)}
+.empty-state .ei{font-size:32px;margin-bottom:8px}
+.empty-state p{font-size:13px;font-weight:500}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCABCASgDASIAAhEBAxEB/8QAHQABAAIDAQEBAQAAAAAAAAAAAAcIAQYJBQMCBP/EAEYQAAECBQEGAQUMCAUFAAAAAAECAwAEBQYRBwgSITFBYVETFiIycRQVMzdCUmJydIGRsxgjNnWCobLSF0NWlbFTV5Si0//EABoBAQADAQEBAAAAAAAAAAAAAAACAwQBBQb/xAAoEQACAwACAgEDAwUAAAAAAAAAAQIDERIxBCEyImFxBRNCBkFRgcH/2gAMAwEAAhEDEQA/AIEhCEekeaIQj3bZtp6tsOvpmm2ENq3OKd4k4z90Z/K8qnxa3bdLIo1+F4PkedcqPHjyk/7fj8n7kLRq07JtTbJlg26kKTvOHOPwjxJthyVmnZZ4AONLKFYORkd43NFjzyEhKK0UpHIBCgP6o/kqVkzMrJPzYqDbpbSVlJQU72OfHMeF4v694ztan5Ckn0lGSz/fs+o87+lvMVClV4kouK2Tc4y3F7xLP+mpQgIR9KfGCEIQAhCEAIQhACEIQAhCEAIQhACEIQAhCEAIQhACEIQAhCEAIQhACEIQAhCEAIQhACEIQBIti6Kah3nQ0Vuj0uXbp7pPkXpuZS15YA4JSOJxkYyQAemY2WW2ctXpUq9zJpbO9z3KmU5/BMSnopr5YVN02olCuCbepc9SZNqSUky61odS2gJS4kpB5gAkHBBzG6HaF0nA/aRX/iO/2xlscpbFx1GurjDJRlj/ACV//R91o/60h/up/tj8PbPGsjzZaeVTltq5pVVCQf8A1i59Jn5Wq0qUqki55SVnGETDC8EbyFpCknB5cCI0S5tatObcr85QqvXSxPyawh9sSzit1RSFYyE45ERRGMd+mC38GiV1rWSslj+7KuzezbqsxLOPJptMmChJUGmZ9O+vsN4AZ9pERHNMPSs09KzLS2X2HFNOtrGFIWk4UkjoQQQRF6ZnaJ0pZl1uprz7xQkkNtybpUrsMgDP3xS6/wCvi6b3rVxplvcyajOLfQyTkoST6IPfAGe+Y2Vyk/kjDZGMfizw43TTjS29dQGZiZtumNuSkurccmZh5LTW/wA9wE8VHHHgCB1IyI8axbYql5XZIW3SEAzU45u76gSlpA4qcVj5KRx/AdY6I2NbNLs61ZC3KO15OUk290E+stROVLV4qUSSfbHLbOHXYqr5v30c6Lutyt2nXn6HcMguRn2QFKaUoKyk+qpJSSCk4OCD/MER5UXj2pdMjfVn++1JY36/SEKcYSkelMtYJWz3PVPcY6mKOEEEgggjmCMERKufNacshweHpWxQqvc1dlaHQpFyeqE0ohplBAzgEkkkgAAAkkkCNm1F0nvmwZFmoXFS20yLqw2JmWfDraVnklWOKSemRg+OY9DZuvGn2TqrI1OrbqJCZaXJPvE4DAcKcOHsCkZ7EnpF6bqodMum2Z6hVRoPyM+wppwA8cKHBST0I5gjkQIjZY4S+xKutTi/8nM6EbHqTZ9TsW8Z63KmklTC8sPYwH2SfQcHtHPwII6RrkWp6VNZ6EfemyU5UqhL0+nyzs1NzLgaYZaTlTiycAAR8ItXsbaYmXYGotbl8OvoKKQ2rPotkek/j6XJPbJ6xGcuK0lCPJ4Qveui2otoW6qv1mjNCQbAMwqXmUOqlweqwDyycZTvAdSBEeR1AnZWXnZN6Tm2UPy7yC262sZStJGCCPDEc/NddO5nTi+XqWlLi6VMgv019Xyms8UE9VIPA9sHrFdVvL0ydtXH2jQoQhF5SZQlS1pQhJUpRASkDJJPICJJqOhWp9PtddwzNugS7bXlnZdMyhUw2jGSooB6DiQCVDwjd9j/AEx9/wCvC+azLBVLpjuJBCwcPzIPr90o/qx82LNar3pTbCsieuColKyhPk5aXJ4zDyh6KB/yfAAnpFE7WpcYl8Kk48pHOMEEZHERmMJBCRndzj5IwPuHSNl00s+pX3ecjblMSoKfXvTD2MhhkEb7h9g5eJIHWLm8KUtPU060nvm/pF6oW7S21SLKy2ZmZfDTaljmlOeKiOuBgcs5jWbnoNYtmuzNDr0g5I1CWIDrKyDjIyCCCQoEcQQSI6QWnQabbFuSFApLIZkpFhLLSepAHrE9VHmT1JMRFtZ6Ym77WFzUaWLldpDZJQgelMy+cqR3UnipP8Q6xRG/ZY+i+VGR1dlKoRgEEAg5BjMaDOIka2dEdSrjtlNw0ugoVJuo8pLpdmUNuzCfFCSeR6bxTnpwwYjZ74Jf1THTOzAE2fRUpAAFPYAA6fq0xVbNwzC2qCm3pzTmmH5SaelJlpbL7DimnW1jCkLSSFJI6EEEGPnG9bQSUp1tu4JSEj3xUcAdSlJP840WLE9WlbWPBCEI6cEIQgBCEIARg8jGYweRgDpFpT8V1p/uWT/IRFHto/49bu+2I/Jbi8OlPxXWn+5ZP8hEUe2j/j1u77Yj8luMtHyZqv8AiiP4GETfsm6Y+eF1ec9Xl96hUd0FCVDKZmaGFJR3SnIUf4R1MaJSUVrM8YuTxE2bKOmPmbafnDV5bcr1XbSspWPSlpc4KW+yj6yu+B8mPptN6vPaeU6SpdAUw5cE4tL264N5LLCVAkqH08bo7bx6CJJ1Auql2VaU/clXXuy0ojIQD6TqycIQnuokD+cc7rzuOp3ddE/cdYcC52ec31gH0UADCUJ+ikAAeyM1cf3JcmabJftx4o6G6b3fTL5s6RuOlq/VTCMOtE5Uy6PXbV3B/EYPWKpbXGmAta5PPCjS+7Rqs6fdKEDCZaZPE+xK+JH0t7xEeNsvamKsS8xTKm+RQKutLUwDyl3iQEPdh8lXbB+TF0rtoFLuu2p2g1dkPyM80W1jqOoUk9CDgg+IEPdU/sPVsPucziMxcfZD1Q84qCLJrUyV1emNZlHHFZMxLDAAyeakZA+rg9DFWdRLSqdjXjP2zVfSflVAtvBOEvtHihxPYj8CCOYMfwWzW6lbdwSNdpEwpiekXkvNKHIkHik+KSMgjqCYvnFTiUQk4SLsbT2mPn9Z3u+ly6VXBSkqclMD0n2+a2c9c4yn6Q7mKLe0EHwIwRHSDS+8qdfllSFyU7CA+gJmGM5Mu8AN9s+wnn1GD1ism1RpFPSN7S1w2pTXJmWuCaDTssyODM4rAHsS5xOeQIVnGRFVM8fFlt0NXJEfbP8Apy/qNfLUm8laaNIlMxUnQOBRng0D85eCOw3j0i+k7M0y36E7NPqZkabT5cqUcBKGmkJ5AdAAOAjWNFrBktOrGlaGxuOzi/10/MAfDPkDJ+qOCQPAeJMQJtk6midm/wDDuiv5l5dSXKs4hXruDiln2J4KV3wOhiMm7Z4uiUUqoa+zb9ENfBeepVVoFYQiUlag7v0EEbqkpSni0s9VKCd8dyofNiRdctPZTUaxZikqDbdSYy/TZhQ+DeAOAT81Xqnsc8wI58ykxMSc0zNyb7kvMsLS4062cKbWk5CgfEGOgGgeosvqPYzVRWUN1aUIYqTI4broHBYHzVDiPvHSO2w4PlE5VPmuMigVQk5qnVCZp88wuXmpV1TL7SxhSFpJCkn2EGPf0wsupX9eclbdN3m/LHfmZjdyJdkess/8AdSQIsFtkaXqfSnUOgyhW6ndZqrLSMlY5IfwOZHBKu26ehiR9mjTNOn1lh+osJTcFUCXZ9XMtJGdxkH6IJz4qJ7RN3LhqK1U+WMkW3aPS7Zt2Uo1LZRKU6QZDbac4CUjmSfE8ST4kmKPbSepa9Qr2U1IPL94KWpbEkkE7rys4W+R9LHo+CccsmJs2w9TveWiGw6NM4qVSazUVoVxZllAjc+sviPqg+Iin44DEcph/Jkrp/xRnj0BJ6ADJMXp2YtMRYNne76mwkXDVUpcmyRxYb5oZB7Zyr6R7CIS2QdMjcdxee1Zl80ilO4k0LHozMyOv1W+B7qI+aRFo9Ubzp1hWTPXJUR5QMJ3ZdgHBfePqNj2nr0AJ6Ry6evijtMMXNkcbS2srunz1Motv+QfrTrrc1NJcG8luWCuKD4KcwU9hk+ESpY9zUy8LVkLjo7u/KTjW+kH1kK5KQodFAgg+yOclz1upXJcE9XavMKfnp55TzqjyGeSR4JAwAOgAiWtlDU42bdotyrzBTQqw4E7y1ejKzHJK+wVwSf4T0MJU5H12I3bL30fPar0x8ybtFepMsG6BWHCUJQMJlpjGVN8OASeKk/xDpEMR0pv+1qbelo1C3KqjMvONFIWBlTS+aXE90nB+6Od1623U7Rumft2sNFubknSgno4n5LifoqGCPbg8QYnTPksZC6HF6jxHvgV/VMdNLO/ZGjfYGPy0xzLe+BX9Ux00s79kaN9gY/LTEPI6RLx+2UJ2hfjuu794H+hMaJG97Qvx3Xd+8D/AEJjRIvj8UUy+TEIQiREQhCAEIQgBGDyMZhAHSHSn4rrT/csn+QiKPbR/wAet3fbEfktxKenO04xb9iyVDrNtTE3O06WTLS7ss6lLbqEJCUbwPFJwADjOefaIDvOvzl1XZVLkn0NtzNRmFPrQ36qOQCRnoEgDPaM9UHGTbL7ZqUUkfuxbaqF43dTbZpmEzU+95MLUMpbSAVKWeyUgnvjHWOidk23TLQtWQt2kNeTlJJoISTzWealq8VKJJPcxzz03uudse9qbdEg0h52SWoqZWcJdQpJSpJPTgo4PQgHpE3apbTfnBZ01RLYok7S5qebLL82+8nLTagQsN7pzvEcArhjOecdtjKTSXQqlGKbfZq+1Vqab1u73ipT5VQaO4pCCk+jMv8AJTncDilP3nrEMRgAAYAwIzFsYqKxFUpOT1mCARg8RFy9kTU/zlt0WbWpnerNKaHuZbisqmZUYAPHiVI4JPYpPjFNY9O1a9U7YuKRr9Hf8hPSTocaV0PilQ6pIyCPAxycOSw7CfF6XQ2p9NE3vZhrFOaBrtGbW6xjgX2ua2j34ZT3GOGTFGwQQCORiz107VLNQs+ZkqVa0xK1eaYU0XH30rYZKhgqGPSVzOAQO8VhAwAIhSpJYyVri3qJZ2ZtTDp/eglKk/uW/VVJbnN7kw5yQ92A5K7HPQRewFDiQobq0nBB5g+Bjl2ePOLEaP7SRtazmLfuekz1VVIo8nKTTLyd9TY9VDm+fk8ACOgGeIyY3Vt+0Tps4+mTttCakMadWM7MsOIVWp4KYprRGfTxxcI+ajmfE4HWKCTDz0zMuzMw6t595anHXFnKlrUcqUT4kkmNr1bv2qai3i9XqinyDQSGZSVSsqRLtAnAHiok5J6nsBGoxOuHBFdk+bEbvonf83p1fUtWmt5yQewxUWB/mME8SB85PrD7x1MaRCLGtWMgnj1HTylz0jV6XK1KnzDU3JTbSHmHkHeS4hQBSoHwxgxr+qt606wLKnbiqGFlobksxnCn3lcEIH38SegBPSKqaC6+Paf0FduV2nTVVpaFqXJrZcHlZfPEt4VwKM5I48CT05anrvqnP6nXBLzBl1yFJkUlMnJlzeOVY3nF44FRwB2HAcznKqXyx9Gp3Ljq7NJuKsVG4K7O1urTBmJ6deLzzh6k9AOgAwAOgAj09N7RqF83pT7Zpqkocml5ddVyZaTxWs+OByHU4HWNdjadKr0ndP74krmkpdE15EKbeYUrdDrSxhSc9DyIPiBGl7noyrN9nQm2KJS7WtuSodJZTLU+QZDbSSeQHNRPUk5JPUkmKSbTOpn+IN6e5qa/v2/SlKbkt3k+vkt7uDyT9EZ6mNw1h2klXVaD9vWxSZ6kmdT5ObmnnU74bPrIRu/O4gnwJxxORXgcBgRTVW0+Ui62xP6Y9CMKAUkpUAQeBBjMI0FBdnZQ1P8APK1fNysTIXXqQ2ElSz6UzL8kudynglXfB+VHy2tdM27rtNV10xpIrVGZUtzp7olU5UtHtTxUn+IdYqNYtz1SzbrkLjo7pRNSbm9uFRCXkHgptWOaVDh+B5gRPd/7T7Fcsado9Gtqak6jPyypd56YeSptlK0lKynHFRwTjIHj2jM65RnsTQrFKGSKzPfAr+qf+I6aWd+yNG+wMflpjmaQCndxwxiLQadbUMhSrTkKVctAn5ick2Use6JNSN11KRhJIUQQrAGefH8IldFySwjTJRb09rUfZnnbtvusXM3e0vJIqMx5YS6qUXC36IGN7ywzy54Ea/8AojVD/uFK/wCyq/8AvG0fpXWb/pyvfg1/fD9K6zf9OV78Gv74gnavRY1U3pGGpuzdX7NtKcuSVuKVrbEg2XpppMmqXWhpPFSx6awoAZJ5cATxiDYslq5tKSNzWRUrbt6gTssqpy65WYmJxSMIaWClYSlJOSUkjJIxnMVti6tya+opsUU/pEIQiwrEIQgBCEIAQhCAEIQgBCEIAQhCAEIQgBCEIAQhCAEIQgBCEIAQhCAEIQgBCEIAQhCAEIQgBCEIAQhCAEIQgD//2Q==" style="height:26px;width:auto;object-fit:contain;display:block;">
+  </div>
+  <div class="hdiv"></div>
+  <div class="htitle">Asset Inspection</div>
+  <div class="hpills">
+    <span class="hpill" id="hcount">0</span>
+    <span class="hpill" id="hsession">—</span>
+  </div>
+</header>
+
+<div class="toast" id="toast"></div>
+
+<div class="progress-overlay" id="progressOverlay">
+  <div class="prog-spin"></div>
+  <div class="prog-txt" id="progTxt">Generating PDF…</div>
+  <div class="prog-bar-wrap"><div class="prog-bar" id="progBar"></div></div>
+  <div class="prog-sub" id="progSub">Please wait</div>
+</div>
+
+<main>
+  <!-- SESSION -->
+  <div class="card">
+    <div class="ch"><h3>Session Info</h3></div>
+    <div class="cb">
+      <div class="fgrid" style="margin-bottom:10px">
+        <div class="fg"><label>Technician</label><input type="text" id="techName" placeholder="Full name" autocomplete="name"></div>
+        <div class="fg"><label>Date</label><input type="date" id="visitDate"></div>
+      </div>
+      <div class="fgrid3" style="margin-bottom:10px">
+        <div class="fg">
+          <label>Zone</label>
+          <select id="zone" onchange="updateRegions()">
+            <option value="">Select Zone</option>
+            <option>Central</option><option>East</option><option>West</option><option>South</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Region</label>
+          <select id="region"><option value="">Select Region</option></select>
+        </div>
+        <div class="fg">
+          <label style="display:flex;align-items:center;justify-content:space-between;">Site ID (Tawal) <span onclick="toggleNA('siteId')" id="siteId_na_btn" style="font-size:9px;font-weight:700;color:var(--txD);cursor:pointer;padding:1px 6px;border-radius:3px;border:1px solid var(--bd);background:var(--sf);letter-spacing:.04em;">N/A</span></label>
+          <input type="text" id="siteId" placeholder="e.g. 1005542" autocomplete="off" autocorrect="off" spellcheck="false">
+        </div>
+      </div>
+      <div class="fgrid">
+        <div class="fg">
+          <label style="display:flex;align-items:center;justify-content:space-between;">STC Site ID <span onclick="toggleNA('stcId')" id="stcId_na_btn" style="font-size:9px;font-weight:700;color:var(--txD);cursor:pointer;padding:1px 6px;border-radius:3px;border:1px solid var(--bd);background:var(--sf);letter-spacing:.04em;">N/A</span></label>
+          <input type="text" id="stcId" placeholder="e.g. ZRH457" autocomplete="off" spellcheck="false">
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ASSET COUNT ROW -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+    <div style="font-size:10px;font-weight:700;color:var(--txD);text-transform:uppercase;letter-spacing:.6px">Assets</div>
+    <div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--txD)" id="assetSummary">—</div>
+  </div>
+
+  <div id="assetsList"></div>
+  <button class="btn-add" onclick="addAsset()">＋ Add Asset</button>
+</main>
+
+<div class="botbar">
+  <button class="btn-rst" onclick="resetAll()">↺</button>
+  <button class="btn-json" onclick="exportJSON()" title="Export JSON for System 2">⬇ JSON</button>
+  <button class="btn-pdf" id="exportBtn" onclick="exportPDF()">⬇ Export PDF</button>
+</div>
+
+<script>
+const CLAUDE_API='https://api.anthropic.com/v1/messages';
+let assets=[],counter=0;
+
+const MAJORS=['Buildings','Furniture & Fixture','IT Equipment','Infrastructure','Land','Mechanical & Electrical','Other Intangibles','Software'];
+const MINOR_MAP={
+  'Buildings':['Civil works','Commercial Building','Shelters','Tower'],
+  'Furniture & Fixture':['Seating Furniture'],
+  'IT Equipment':['Control system','IBS','Office IT Equipment','SOFTWARE'],
+  'Infrastructure':['Batteries','Civil works','Climate control','Generator','Power','Rectifier','Shelters','Tank','Tower'],
+  'Land':['Land'],
+  'Mechanical & Electrical':['Batteries','Climate control','Generator','Power','Rectifier'],
+  'Other Intangibles':['SOFTWARE'],'Software':['SOFTWARE']
+};
+const ALL_MINORS=['Batteries','Civil works','Climate control','Commercial Building','Control system','Generator','IBS','Office IT Equipment','Power','Rectifier','SOFTWARE','Seating Furniture','Shelters','Tank','Tower'];
+const SUBMINORS=['Air Conditioner','Alarm Systems','Aviation Light','Battery Bank','Buildings Interior','Buildings Structure','Desk And Tables','Distribution Panel','Electricity Meter','External Fuel Tank','Fan','Fences','Fire Fighting System','Foundation','Generator','Hvac System','IBS Equipments','Land','Laptops And Computers','Rectifier Cabinet','Rectifier Module','Shelters','Site Development','Site Permits','Site design','Solar Inverter','Solar Structure','Tower Structure','Transformer'];
+const MANUFACTURERS=['Agisson','Al Babtain','Ascot','Beijing Dynamics','Benning','CGS','CSB','Coelmo','Delta','EATON','Eltek','Emerson','ENATEL','Enersys','Ericsson','Exide','FG Wilson','GE','Gesan','Haze','Hoppecke','Huawei','Inmesol','Liebert','Lucent','Missing','Motoma','N/A','Narada','Nokia','North star','Other','Power safe','Sacred Sun','Shoto','Zamil'].sort();
+const ASSET_TYPES=['Capitalized','Non-Capitalized'];
+const ZONE_REGIONS={
+  'Central':['Hail','Qassim','Riyadh City','Riyadh District'],
+  'East':['Ahsa','Dammam','Jouf','Jubail','Northern Borders'],
+  'West':['Jeddah','Madinah','Makkah','Tabuk','Taif','Yanbu'],
+  'South':['Asir','Baha','Jizan','Najran']
+};
+const ALL_REGIONS=['Ahsa','Asir','Baha','Dammam','Hail','Jeddah','Jizan','Jouf','Jubail','Madinah','Makkah','Najran','Northern Borders','Qassim','Riyadh City','Riyadh District','Tabuk','Taif','TBD','Yanbu'];
+const STATUSES=['Good','Needs Maintenance','Damaged','Missing','Decommissioned'];
+const SKEYS   =['good','maintenance','damaged','missing','decommissioned'];
+const SEMOJI  =['✓','⚠','✕','?','—'];
+const SCOLORS ={'Good':'#00AC69','Needs Maintenance':'#c98a00','Damaged':'#e04848','Missing':'#7E5475','Decommissioned':'#6b8299'};
+
+document.getElementById('visitDate').value=new Date().toISOString().split('T')[0];
+const SID='FI-'+Date.now().toString(36).toUpperCase().slice(-6);
+document.getElementById('hsession').textContent=SID;
+updateRegions();
+
+function toast(msg,dur=3000){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),dur);
+}
+
+
+function toggleNA(fieldId) {
+  const inp = document.getElementById(fieldId);
+  const btn = document.getElementById(fieldId + '_na_btn');
+  if (!inp || !btn) return;
+  if (inp.value === 'N/A') {
+    inp.value = '';
+    inp.disabled = false;
+    inp.style.color = '';
+    inp.style.fontStyle = '';
+    inp.style.background = '';
+    btn.textContent = 'N/A';
+    btn.style.background = '';
+    btn.style.color = '';
+    btn.style.borderColor = '';
+  } else {
+    inp.value = 'N/A';
+    inp.disabled = true;
+    inp.style.color = 'var(--txD)';
+    inp.style.fontStyle = 'italic';
+    inp.style.background = 'var(--sf2)';
+    btn.textContent = '✕ N/A';
+    btn.style.background = 'var(--rdB)';
+    btn.style.color = 'var(--rd)';
+    btn.style.borderColor = 'var(--rdR)';
+  }
+}
+
+function updateRegions(){
+  const zone=document.getElementById('zone').value;
+  const sel=document.getElementById('region');
+  const cur=sel.value;
+  const list=zone&&ZONE_REGIONS[zone]?ZONE_REGIONS[zone]:ALL_REGIONS;
+  sel.innerHTML='<option value="">Select Region</option>'+list.map(r=>`<option${r===cur?' selected':''}>${r}</option>`).join('');
+}
+
+function ga(id){return assets.find(a=>a.id===id);}
+
+// Compress image to JPEG at reduced size — critical for mobile photos (10MB+)
+function compressImage(dataUrl,maxW,maxH,quality){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      let w=img.width,h=img.height;
+      if(w>maxW||h>maxH){
+        const ratio=Math.min(maxW/w,maxH/h);
+        w=Math.round(w*ratio);h=Math.round(h*ratio);
+      }
+      const c=document.createElement('canvas');
+      c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      resolve(c.toDataURL('image/jpeg',quality));
+    };
+    img.src=dataUrl;
+  });
+}
+
+
+
+// ── ASSET CLASSIFICATION MAP (synced from Asset Count Program) ──
+var AM={
+'Ac Distribution Panel (Sharing Panel)':'Mechanical & Electrical|Power|Distribution Panel',
+'Ac Main Power Cable':'Mechanical & Electrical|Power|Distribution Panel',
+'Access Control Panel':'Mechanical & Electrical|Control system|Alarm Systems',
+'Auto Suppression Cylinder (Fm200)':'Mechanical & Electrical|Control system|Fire Fighting System',
+'Automatic Transfer Switch':'Mechanical & Electrical|Power|Distribution Panel',
+'Backup Battery String':'Mechanical & Electrical|Batteries|Battery Bank',
+'Battery Steel Rack':'Mechanical & Electrical|Batteries|Battery Bank',
+'Black Box':'Mechanical & Electrical|Control system|Alarm Systems',
+'Boundary Wall':'Infrastructure|Civil works|Fences',
+'Building Alarm Termination Box':'Mechanical & Electrical|Control system|Alarm Systems',
+'Cable Dehydrator':'Mechanical & Electrical|Power|Distribution Panel',
+'Ceiling Mounted A/C Unit':'Mechanical & Electrical|Climate control|Air Conditioner',
+'Chain-Link Fence':'Infrastructure|Civil works|Fences',
+'Concrete Room':'Infrastructure|Shelters|Shelters',
+'Daily Fuel Tank (Standalone)':'Mechanical & Electrical|Tank|External Fuel Tank',
+'Dc Load Distribution Panel (Standalone)':'Mechanical & Electrical|Power|Distribution Panel',
+'Dummy Load':'Mechanical & Electrical|Power|Distribution Panel',
+'Fire Control Panel':'Mechanical & Electrical|Control system|Fire Fighting System',
+'Fire Detector':'Mechanical & Electrical|Control system|Fire Fighting System',
+'Floor Stand Split A/C Unit':'Mechanical & Electrical|Climate control|Air Conditioner',
+'Generator':'Mechanical & Electrical|Generator|Generator',
+'Hvac Panel':'Mechanical & Electrical|Climate control|Hvac System',
+'Hybrid System (Eaas)':'Mechanical & Electrical|Power|Distribution Panel',
+'Inverter (Eaas)':'Mechanical & Electrical|Power|Distribution Panel',
+'Main Distribution Panel (Shelter/Room Mdb)':'Mechanical & Electrical|Power|Distribution Panel',
+'Main Fuel Tank':'Mechanical & Electrical|Tank|External Fuel Tank',
+'Manual Extinguisher':'Mechanical & Electrical|Control system|Fire Fighting System',
+'Mppt Solar Charger':'Mechanical & Electrical|Power|Solar Inverter',
+'Odu A/C Unit':'Mechanical & Electrical|Climate control|Air Conditioner',
+'Odu Main Circuit Breaker/Panel':'Mechanical & Electrical|Power|Distribution Panel',
+'Outdoor Cabinet':'Infrastructure|Shelters|Shelters',
+'Package A/C Unit':'Mechanical & Electrical|Climate control|Air Conditioner',
+'Pylon':'Infrastructure|Tower|Tower Structure',
+'Rectifier Cabinet':'Mechanical & Electrical|Rectifier|Rectifier Cabinet',
+'Remote Monitoring System':'Mechanical & Electrical|Control system|Alarm Systems',
+'Sec Main Cb':'Mechanical & Electrical|Power|Distribution Panel',
+'Sec Power Meter':'Mechanical & Electrical|Power|Electricity Meter',
+'Shelter':'Infrastructure|Shelters|Shelters',
+'Small Cell':'Infrastructure|Tower|Tower Structure',
+'Smart Lock':'Mechanical & Electrical|Control system|Alarm Systems',
+'Smart Meter':'Mechanical & Electrical|Power|Electricity Meter',
+'Solar Cell':'Mechanical & Electrical|Power|Solar Structure',
+'Solar Inverter':'Mechanical & Electrical|Power|Solar Inverter',
+'Solar Structure':'Mechanical & Electrical|Power|Solar Structure',
+'Tower':'Infrastructure|Tower|Tower Structure',
+'Tower Light Control Panel':'Mechanical & Electrical|Control system|Aviation Light',
+'Transformer':'Mechanical & Electrical|Power|Transformer',
+'Underground Room':'Infrastructure|Shelters|Shelters',
+'Ventilation Damper':'Mechanical & Electrical|Climate control|Hvac System',
+'Ventilation Fan':'Mechanical & Electrical|Climate control|Fan',
+'Ventilation System Control Panel':'Mechanical & Electrical|Climate control|Hvac System',
+'Wall Mounted Split A/C Unit':'Mechanical & Electrical|Climate control|Air Conditioner',
+'Wall Mounting Pole':'Infrastructure|Tower|Tower Structure',
+'Window A/C Unit':'Mechanical & Electrical|Climate control|Air Conditioner'
+};
+var COCAT={'IT Equipment':1,'Software':1,'SOFTWARE':1,'Furniture & Fixture':1,'Other Intangibles':1,'Land':1,'Buildings':1};
+function amLookup(desc){
+  if(!desc)return[null,null,null];
+  // Title-case the description for lookup
+  var key=desc.trim().replace(/\b\w/g,function(c){return c.toUpperCase();});
+  var v=AM[key];
+  if(!v){
+    // Fuzzy: try lowercase match
+    var lk=Object.keys(AM).find(function(k){return k.toLowerCase()===desc.trim().toLowerCase();});
+    if(lk)v=AM[lk];
+  }
+  return v?v.split('|'):[null,null,null];
+}
+
+function autoClassifyFromDescription(id){
+  const a=ga(id);if(!a||!a.assetDescription)return;
+  const cats=amLookup(a.assetDescription);
+  if(cats[0]&&!a.majorCategory){a.majorCategory=cats[0];}
+  if(cats[1]&&!a.minorCategory){a.minorCategory=cats[1];}
+  if(cats[2]&&!a.subMinorCategory){a.subMinorCategory=cats[2];}
+  if(cats[0]){renderAssets();toast('✓ Auto-classified: '+cats[0]+' → '+cats[1]);}
+}
+
+function addAsset(){
+  counter++;
+  assets.push({id:counter,tawalSiteId:'',stcId:'',tagNumber:'',assetNumber:'',
+    assetDescription:'',majorCategory:'',minorCategory:'',subMinorCategory:'',
+    manufacturer:'',model:'',assetType:'',qty:'1',status:'',notes:'',
+    scanImg:null,photos:[]});
+  renderAssets();
+  setTimeout(()=>{
+    const el=document.getElementById('ac-'+counter);
+    if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+  },100);
+}
+
+function removeAsset(id){assets=assets.filter(a=>a.id!==id);renderAssets();}
+
+function getMinors(major){return major&&MINOR_MAP[major]?MINOR_MAP[major]:ALL_MINORS;}
+
+// Debounced render to avoid lag on rapid inputs
+let renderTimer=null;
+function scheduleRender(){clearTimeout(renderTimer);renderTimer=setTimeout(renderAssets,50);}
+
+function renderAssets(){
+  const hc=document.getElementById('hcount');
+  const hs=document.getElementById('assetSummary');
+  hc.textContent=assets.length+' asset'+(assets.length!==1?'s':'');
+  const byS={};assets.forEach(a=>{if(a.status)byS[a.status]=(byS[a.status]||0)+1;});
+  const sp=Object.entries(byS).map(([k,v])=>v+' '+k);
+  hs.textContent=sp.length?sp.join(' · '):'—';
+
+  const list=document.getElementById('assetsList');
+  if(assets.length===0){
+    list.innerHTML='<div class="empty-state"><div class="ei">📋</div><p>No assets yet.<br>Tap <b>+ Add Asset</b> to begin.</p></div>';
+    return;
+  }
+  list.innerHTML=assets.map((a,idx)=>{
+    const sk=SKEYS[STATUSES.indexOf(a.status)]||'';
+    const stTag=a.status?`<span class="stag stag-${sk}">${a.status}</span>`:'';
+    const minors=getMinors(a.majorCategory);
+    const photos=a.photos.map((img,pi)=>`<div class="pt-wrap"><img src="${img}" loading="lazy"><button class="pt-del" onclick="removePhoto(${a.id},${pi})">✕</button></div>`).join('');
+    const addBtn=a.photos.length<6?`<div class="add-photo"><input type="file" accept="image/*" capture="environment" onchange="addPhoto(event,${a.id})">📸<span>Add</span></div>`:'';
+    const sBtns=STATUSES.map((s,i)=>{
+      const k=SKEYS[i];const ac=a.status===s?`a-${k}`:'';
+      const wide=i===4?' wide':'';
+      return`<button class="sb2${wide} ${ac}" onclick="setStatus(${a.id},'${s}')">${SEMOJI[i]} ${s}</button>`;
+    }).join('');
+    return`
+<div class="asset-card${sk?' s-'+sk:''}" id="ac-${a.id}">
+  <div class="ach">
+    <div class="ach-left">
+      <div class="ach-num">ASSET #${String(idx+1).padStart(2,'0')}</div>
+      <div class="ach-id${!a.assetNumber&&!a.tagNumber?' empty':''}">${a.assetNumber||a.tagNumber||'No ID yet'}</div>
+    </div>
+    <div class="ach-right">${stTag}<button class="btn-remove" onclick="removeAsset(${a.id})">✕</button></div>
+  </div>
+  <div class="acb">
+
+    <div class="sec-label">Scan Tag</div>
+    <div class="scan-zone${a.scanImg?' has-img':''}" id="sz-${a.id}">
+      <input type="file" accept="image/*" capture="environment" onchange="handleScan(event,${a.id})">
+      ${a.scanImg
+        ?`<img src="${a.scanImg}" class="scan-thumb"><div class="scan-result">${a.assetNumber?'✓ Asset# '+a.assetNumber:a.tagNumber?'✓ Tag# '+a.tagNumber:'Tap to re-scan'}</div>`
+        :`<div class="scan-icon">📷</div><div class="scan-txt">Tap to photograph asset tag</div><div class="scan-sub">Camera opens automatically</div>`}
+      <div class="scan-proc" id="sp-${a.id}"><span class="spin"></span> Reading tag…</div>
+    </div>
+
+    <div class="sec-label">Asset Identification</div>
+    <div class="fgrid" style="margin-bottom:10px">
+      <div class="fg"><label>Tag Number</label><input type="text" inputmode="numeric" placeholder="Tag #" value="${a.tagNumber}" oninput="updateF(${a.id},'tagNumber',this.value)" autocomplete="off" spellcheck="false"></div>
+      <div class="fg"><label>Asset Number</label><input type="text" inputmode="numeric" placeholder="Asset #" value="${a.assetNumber}" oninput="updateF(${a.id},'assetNumber',this.value)" autocomplete="off" spellcheck="false"></div>
+    </div>
+    <div class="fg full" style="margin-bottom:10px"><label style="display:flex;align-items:center;justify-content:space-between;">Asset Description <span style="font-size:9px;color:var(--sk);font-weight:700;letter-spacing:.04em;">AUTO-CLASSIFIES ↓</span></label><input type="text" placeholder="Description" value="${a.assetDescription}" oninput="updateF(${a.id},'assetDescription',this.value)" onblur="autoClassifyFromDescription(${a.id})"></div>
+
+    <div class="sec-label">Classification</div>
+    <div class="fgrid" style="margin-bottom:10px">
+      <div class="fg"><label>Major Category</label>
+        <select onchange="updateF(${a.id},'majorCategory',this.value);refreshMinors(${a.id},this.value)">
+          <option value="">Select…</option>${MAJORS.map(m=>`<option${a.majorCategory===m?' selected':''}>${m}</option>`).join('')}
+        </select>
+      </div>
+      <div class="fg"><label>Minor Category</label>
+        <select id="min-${a.id}" onchange="updateF(${a.id},'minorCategory',this.value)">
+          <option value="">Select…</option>${minors.map(m=>`<option${a.minorCategory===m?' selected':''}>${m}</option>`).join('')}
+        </select>
+      </div>
+      <div class="fg"><label>Sub-Minor</label>
+        <select onchange="updateF(${a.id},'subMinorCategory',this.value)">
+          <option value="">Select…</option>${SUBMINORS.map(s=>`<option${a.subMinorCategory===s?' selected':''}>${s}</option>`).join('')}
+        </select>
+      </div>
+      <div class="fg"><label>Asset Type</label>
+        <select onchange="updateF(${a.id},'assetType',this.value)">
+          <option value="">Select…</option>${ASSET_TYPES.map(t=>`<option${a.assetType===t?' selected':''}>${t}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+
+    <div class="sec-label">Manufacturer / Model</div>
+    <div class="fgrid3" style="margin-bottom:10px">
+      <div class="fg"><label>Manufacturer</label>
+        <select onchange="updateF(${a.id},'manufacturer',this.value)">
+          <option value="">Select…</option>${MANUFACTURERS.map(m=>`<option${a.manufacturer===m?' selected':''}>${m}</option>`).join('')}<option value="Other">Other…</option>
+        </select>
+      </div>
+      <div class="fg"><label>Model</label><input type="text" placeholder="Model" value="${a.model}" oninput="updateF(${a.id},'model',this.value)" autocorrect="off" spellcheck="false"></div>
+      <div class="fg"><label>Qty</label><input type="number" inputmode="numeric" min="1" value="${a.qty||1}" oninput="updateF(${a.id},'qty',this.value)"></div>
+    </div>
+
+    <div class="sec-label">Field Condition</div>
+    <div class="status-btns">${sBtns}</div>
+
+    <div class="sec-label">Photos</div>
+    <div class="photo-grid" id="pg-${a.id}">${photos}${addBtn}</div>
+
+    <div class="sec-label" style="margin-top:14px">Remarks</div>
+    <textarea placeholder="Observations, issues, serial numbers, notes…" oninput="updateF(${a.id},'notes',this.value)">${a.notes}</textarea>
+
+  </div>
+</div>`;
+  }).join('');
+}
+
+function refreshMinors(id,major){
+  const sel=document.getElementById('min-'+id);if(!sel)return;
+  const a=ga(id);const minors=getMinors(major);
+  sel.innerHTML='<option value="">Select…</option>'+minors.map(m=>`<option${a&&a.minorCategory===m?' selected':''}>${m}</option>`).join('');
+}
+
+function updateF(id,field,value){
+  const a=ga(id);if(!a)return;a[field]=value;
+  if(field==='assetNumber'||field==='tagNumber'){
+    const el=document.querySelector(`#ac-${id} .ach-id`);
+    if(el){const v=a.assetNumber||a.tagNumber||'';el.textContent=v||'No ID yet';el.className='ach-id'+(v?'':' empty');}
+  }
+}
+
+function setStatus(id,status){
+  const a=ga(id);if(!a)return;a.status=status;
+  // Partial re-render: update card class + buttons only
+  const card=document.getElementById('ac-'+id);
+  if(!card)return;
+  const sk=SKEYS[STATUSES.indexOf(status)]||'';
+  card.className='asset-card'+(sk?' s-'+sk:'');
+  const stTag=card.querySelector('.ach-right');
+  if(stTag){
+    const btns=Array.from(card.querySelectorAll('.btn-remove'));
+    stTag.innerHTML=(status?`<span class="stag stag-${sk}">${status}</span>`:'')+`<button class="btn-remove" onclick="removeAsset(${id})">✕</button>`;
+  }
+  card.querySelectorAll('.sb2').forEach((btn,i)=>{
+    const k=SKEYS[i];
+    btn.className=btn.className.replace(/\ba-\w+/g,'').trim();
+    if(STATUSES[i]===status)btn.classList.add('a-'+k);
+  });
+  // Update summary
+  const byS={};assets.forEach(a=>{if(a.status)byS[a.status]=(byS[a.status]||0)+1;});
+  document.getElementById('assetSummary').textContent=Object.entries(byS).map(([k,v])=>v+' '+k).join(' · ')||'—';
+}
+
+async function handleScan(event,id){
+  const file=event.target.files[0];if(!file)return;
+  // Compress scan image to 800px, 0.8 quality for API
+  const reader=new FileReader();
+  reader.onload=async(e)=>{
+    const raw=e.target.result;
+    const compressed=await compressImage(raw,800,800,0.85);
+    const a=ga(id);if(!a)return;
+    a.scanImg=compressed;
+    renderAssets();
+    const sp=document.getElementById('sp-'+id);if(sp)sp.style.display='flex';
+    try{
+      const b64=compressed.split(',')[1];
+      const res=await fetch(CLAUDE_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',max_tokens:300,
+        system:`Extract data from TAWAL asset tag images. Return ONLY JSON with no extra text:
+{"assetNumber":"","tagNumber":"","assetDescription":"","manufacturer":"","model":""}
+Extract whatever is visible. Empty string if not found.`,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
+          {type:'text',text:'Extract all asset tag fields.'}
+        ]}]
+      })});
+      const data=await res.json();
+      const txt=data.content?.find(b=>b.type==='text')?.text||'';
+      let parsed={};
+      try{parsed=JSON.parse(txt.replace(/```json|```/g,'').trim());}
+      catch{const m=txt.match(/\d{6,}/);if(m)parsed.assetNumber=m[0];}
+      ['assetNumber','tagNumber','assetDescription','manufacturer','model'].forEach(k=>{if(parsed[k])a[k]=parsed[k];});
+      // Auto-classify from description
+      if(a.assetDescription){const cats=amLookup(a.assetDescription);if(cats[0]&&!a.majorCategory)a.majorCategory=cats[0];if(cats[1]&&!a.minorCategory)a.minorCategory=cats[1];if(cats[2]&&!a.subMinorCategory)a.subMinorCategory=cats[2];}
+      renderAssets();
+      toast((parsed.assetNumber||parsed.tagNumber)?'✓ Tag read: '+(parsed.assetNumber||parsed.tagNumber):'Tag scanned — fill details manually');
+    }catch(err){console.error(err);toast('API error — fill manually');renderAssets();}
+  };
+  reader.readAsDataURL(file);
+}
+
+async function addPhoto(event,id){
+  const file=event.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async(e)=>{
+    const a=ga(id);if(!a||a.photos.length>=6)return;
+    // Compress photo: max 1200px, 0.75 quality
+    const compressed=await compressImage(e.target.result,1200,1200,0.75);
+    a.photos.push(compressed);
+    // Only re-render the photo grid, not full page
+    const grid=document.getElementById('pg-'+id);
+    if(grid){
+      const addBtn=a.photos.length<6?`<div class="add-photo"><input type="file" accept="image/*" capture="environment" onchange="addPhoto(event,${id})">📸<span>Add</span></div>`:'';
+      grid.innerHTML=a.photos.map((img,pi)=>`<div class="pt-wrap"><img src="${img}" loading="lazy"><button class="pt-del" onclick="removePhoto(${id},${pi})">✕</button></div>`).join('')+addBtn;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function removePhoto(id,pi){
+  const a=ga(id);if(!a)return;
+  a.photos.splice(pi,1);
+  const grid=document.getElementById('pg-'+id);
+  if(grid){
+    const addBtn=a.photos.length<6?`<div class="add-photo"><input type="file" accept="image/*" capture="environment" onchange="addPhoto(event,${id})">📸<span>Add</span></div>`:'';
+    grid.innerHTML=a.photos.map((img,pi2)=>`<div class="pt-wrap"><img src="${img}" loading="lazy"><button class="pt-del" onclick="removePhoto(${id},${pi2})">✕</button></div>`).join('')+addBtn;
+  }
+}
+
+// ── PDF EXPORT (chunked by asset to avoid memory crash) ──
+async function exportPDF(){
+  if(assets.length===0){toast('Add at least one asset first');return;}
+  showProgress('Generating PDF…',0,'Preparing…');
+  const btn=document.getElementById('exportBtn');btn.disabled=true;
+
+  const tech=document.getElementById('techName').value||'N/A';
+  const date=document.getElementById('visitDate').value||'N/A';
+  const zone=document.getElementById('zone').value||'N/A';
+  const region=document.getElementById('region').value||'N/A';
+  const site=document.getElementById('siteId').value||'N/A';
+  const stc=document.getElementById('stcId').value||'N/A';
+  const sc={};STATUSES.forEach(s=>sc[s]=assets.filter(a=>a.status===s).length);
+  const sumItems=STATUSES.filter(s=>sc[s]>0).map(s=>`<div style="display:flex;align-items:center;gap:4px;margin-right:10px"><div style="width:8px;height:8px;border-radius:50%;background:${SCOLORS[s]}"></div><span style="font-size:11px">${sc[s]} ${s}</span></div>`).join('');
+
+  const headerHTML=`
+<div style="font-family:Arial,sans-serif;max-width:720px;margin:0 auto;padding:20px;color:#253746;">
+  <div style="background:#253746;border-radius:8px;padding:14px 18px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
+    <div><img src="data:image/jpeg;base64,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" style="height:30px;width:auto;object-fit:contain;display:block;margin-bottom:6px;"><div style="font-size:9px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.1em">Asset Field Inspection Report</div></div>
+    <div style="text-align:right;font-family:monospace"><div style="font-size:8px;color:rgba(255,255,255,.35)">SESSION</div><div style="font-size:12px;color:#FC4C02;font-weight:700">${SID}</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:10px">
+    ${[['Technician',tech],['Date',date],['Zone / Region',zone+' / '+region],['Site ID',site]].map(([k,v])=>`<div style="background:#f7f9fb;border-radius:6px;padding:7px 9px;border:1px solid #e2e7ec"><div style="font-size:8px;font-weight:700;color:#6b8299;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">${k}</div><div style="font-size:11.5px;font-weight:600">${v}</div></div>`).join('')}
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px">
+    ${[['STC ID',stc],['Assets Inspected',''+assets.length]].map(([k,v])=>`<div style="background:#f7f9fb;border-radius:6px;padding:7px 9px;border:1px solid #e2e7ec"><div style="font-size:8px;font-weight:700;color:#6b8299;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">${k}</div><div style="font-size:${k==='Assets Inspected'?'20':'11.5'}px;font-weight:${k==='Assets Inspected'?'800':'600'};color:${k==='Assets Inspected'?'#FC4C02':'#253746'}">${v}</div></div>`).join('')}
+  </div>
+  ${sumItems?`<div style="background:#f7f9fb;border-radius:6px;padding:9px 12px;margin-bottom:12px;border:1px solid #e2e7ec;display:flex;flex-wrap:wrap;align-items:center;gap:4px"><span style="font-size:8.5px;font-weight:700;color:#6b8299;text-transform:uppercase;letter-spacing:.06em;margin-right:6px">Status</span>${sumItems}</div>`:''}`;
+
+  const footerHTML=`<div style="margin-top:16px;border-top:1px solid #e2e7ec;padding-top:10px;display:flex;justify-content:space-between;font-size:9px;color:#6b8299"><span>TAWAL Civil Operations · Asset Field Inspection</span><span>${new Date().toLocaleString()}</span></div></div>`;
+
+  // Build asset rows
+  const assetRowsHTML=assets.map((a,i)=>{
+    updateProgress('Building asset '+(i+1)+' of '+assets.length+'…',Math.round((i+1)/assets.length*60));
+    const c=SCOLORS[a.status]||'#6b8299';
+    const idDisplay=a.assetNumber?'Asset# '+a.assetNumber:a.tagNumber?'Tag# '+a.tagNumber:'—';
+    const fields=[
+      ['Tag #',a.tagNumber||'—'],['Asset #',a.assetNumber||'—'],
+      ['Description',a.assetDescription||'—'],['Major Category',a.majorCategory||'—'],
+      ['Minor Category',a.minorCategory||'—'],['Sub-Minor',a.subMinorCategory||'—'],
+      ['Manufacturer',a.manufacturer||'—'],['Model',a.model||'—'],
+      ['Asset Type',a.assetType||'—'],['Qty',a.qty||'—']
+    ];
+    const photos=a.photos.map(img=>`<img src="${img}" style="width:95px;height:70px;object-fit:cover;border-radius:4px;margin:2px;border:1px solid #e2e7ec">`).join('');
+    return`<div style="page-break-inside:avoid;margin-bottom:14px;border:1px solid #e2e7ec;border-radius:8px;overflow:hidden;border-left:4px solid ${c}">
+      <div style="background:#253746;padding:8px 12px;display:flex;justify-content:space-between;align-items:center">
+        <div><div style="font-size:8.5px;color:rgba(255,255,255,.4);font-family:monospace">ASSET #${String(i+1).padStart(2,'0')}</div>
+        <div style="font-size:13px;color:#FC4C02;font-family:monospace;font-weight:700">${idDisplay}</div></div>
+        <div style="background:${c}22;border:1px solid ${c};border-radius:4px;padding:2px 9px;color:${c};font-size:9.5px;font-weight:700">${a.status||'No Status'}</div>
+      </div>
+      <div style="padding:10px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:8px">
+          ${fields.map(([k,v])=>`<div style="background:#f7f9fb;border-radius:4px;padding:5px 7px;border:1px solid #e2e7ec"><div style="font-size:7.5px;font-weight:700;color:#6b8299;text-transform:uppercase;margin-bottom:1px">${k}</div><div style="font-size:11px;font-weight:600;color:#253746;word-break:break-word">${v}</div></div>`).join('')}
+        </div>
+        ${photos?`<div style="margin-bottom:7px"><div style="font-size:7.5px;font-weight:700;color:#6b8299;text-transform:uppercase;margin-bottom:4px">Photos</div><div style="display:flex;flex-wrap:wrap">${photos}</div></div>`:''}
+        <div style="font-size:7.5px;font-weight:700;color:#6b8299;text-transform:uppercase;margin-bottom:3px">Remarks</div>
+        <div style="font-size:11.5px;color:#253746;background:#f7f9fb;border-radius:4px;padding:7px;min-height:24px">${a.notes||'<span style="color:#9ba3b5;font-style:italic">None</span>'}</div>
+      </div></div>`;
+  }).join('');
+
+  const fullHTML=headerHTML+assetRowsHTML+footerHTML;
+  const wrapper=document.createElement('div');
+  wrapper.style.cssText='position:absolute;left:-9999px;top:0';
+  wrapper.innerHTML=fullHTML;
+  document.body.appendChild(wrapper);
+
+  updateProgress('Rendering PDF…',70,'This may take a moment for large reports');
+  const fname=`TAWAL_Inspection_${(document.getElementById('siteId').value||'site').replace(/\s+/g,'_')}_${date}.pdf`;
+
+  try{
+    await html2pdf().set({
+      margin:[7,7,7,7],filename:fname,
+      image:{type:'jpeg',quality:0.80},
+      html2canvas:{scale:1.5,useCORS:true,logging:false,allowTaint:true},
+      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+      pagebreak:{mode:['css','legacy']}
+    }).from(wrapper).save();
+    updateProgress('Done!',100,'PDF saved');
+    setTimeout(()=>hideProgress(),800);
+    toast('✓ PDF exported — '+assets.length+' assets');
+  }catch(e){
+    console.error(e);
+    hideProgress();
+    toast('PDF failed — try JSON export instead');
+  }
+  document.body.removeChild(wrapper);
+  btn.disabled=false;
+}
+
+function showProgress(msg,pct,sub){
+  document.getElementById('progressOverlay').classList.add('show');
+  document.getElementById('progTxt').textContent=msg;
+  document.getElementById('progBar').style.width=pct+'%';
+  document.getElementById('progSub').textContent=sub||'';
+}
+function updateProgress(msg,pct,sub){
+  document.getElementById('progTxt').textContent=msg;
+  document.getElementById('progBar').style.width=pct+'%';
+  if(sub)document.getElementById('progSub').textContent=sub;
+}
+function hideProgress(){document.getElementById('progressOverlay').classList.remove('show');}
+
+// ── JSON EXPORT (for System 2 aggregator) ──
+function exportJSON(){
+  if(assets.length===0){toast('No assets to export');return;}
+  const session={
+    sessionId:SID,
+    exportedAt:new Date().toISOString(),
+    technician:document.getElementById('techName').value,
+    date:document.getElementById('visitDate').value,
+    zone:document.getElementById('zone').value,
+    region:document.getElementById('region').value,
+    siteId:document.getElementById('siteId').value,
+    stcId:document.getElementById('stcId').value,
+    assetCount:assets.length,
+    assets:assets.map(a=>({
+      tagNumber:a.tagNumber,
+      assetNumber:a.assetNumber,
+      assetDescription:a.assetDescription,
+      majorCategory:a.majorCategory,
+      minorCategory:a.minorCategory,
+      subMinorCategory:a.subMinorCategory,
+      manufacturer:a.manufacturer,
+      model:a.model,
+      assetType:a.assetType,
+      qty:a.qty,
+      status:a.status,
+      notes:a.notes,
+      photoCount:a.photos.length
+      // photos excluded from JSON to keep file small; PDF has photos
+    }))
+  };
+  const blob=new Blob([JSON.stringify(session,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`TAWAL_Inspection_${session.siteId||'site'}_${session.date||'nodate'}.json`;
+  a.click();URL.revokeObjectURL(url);
+  toast('✓ JSON exported — upload to Asset Count Program for FAR matching');
+}
+
+function resetAll(){
+  if(assets.length>0&&!confirm('Reset all data? This cannot be undone.'))return;
+  assets=[];counter=0;
+  ['techName','siteId','stcId'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    el.value='';el.disabled=false;el.style.color='';el.style.fontStyle='';el.style.background='';
+    const btn=document.getElementById(id+'_na_btn');
+    if(btn){btn.textContent='N/A';btn.style.background='';btn.style.color='';btn.style.borderColor='';}
+  });
+  ['zone','region'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('visitDate').value=new Date().toISOString().split('T')[0];
+  updateRegions();
+  renderAssets();
+  toast('Form reset');
+}
+
+renderAssets();
+
+function buildPDF(){
+  const tech  = document.getElementById('techName').value||'—';
+  const date  = document.getElementById('visitDate').value||'—';
+  const zone  = document.getElementById('zone').value||'—';
+  const region= document.getElementById('region').value||'—';
+  const site  = document.getElementById('siteId').value||'—';
+  const stc   = document.getElementById('stcId').value||'—';
+  const sc={};STATUSES.forEach(s=>sc[s]=assets.filter(a=>a.status===s).length);
+
+  // ── OUTCOME BANNER ──
+  const total=assets.length;
+  const goodPct=total?Math.round(sc['Good']/total*100):0;
+  const damagedCount=(sc['Damaged']||0)+(sc['Missing']||0);
+  let outcomeColor='#253746',outcomeBg='#f0f2f5',outcomeLabel='Pending Review',outcomeIcon='⏳';
+  if(total>0){
+    if(damagedCount===0&&(sc['Good']||0)===total){outcomeColor='#00AC69';outcomeBg='#D6F5E8';outcomeLabel='All Good';outcomeIcon='✓';}
+    else if(damagedCount>0){outcomeColor='#9B2E23';outcomeBg='#F9EBEA';outcomeLabel='Issues Found';outcomeIcon='✗';}
+    else{outcomeColor='#c98a00';outcomeBg='#FBF4E8';outcomeLabel='Partial';outcomeIcon='⚠';}
+  }
+
+  // ── ASSET ROWS ──
+  const rows=assets.map((a,i)=>{
+    const c=SCOLORS[a.status]||'#6b8299';
+    const idDisplay=a.assetNumber?'Asset# '+a.assetNumber:a.tagNumber?'Tag# '+a.tagNumber:'—';
+    const fields=[
+      ['Tag Number',a.tagNumber||'—'],['Asset Number',a.assetNumber||'—'],
+      ['Description',a.assetDescription||'—'],['Major Category',a.majorCategory||'—'],
+      ['Minor Category',a.minorCategory||'—'],['Sub-Minor Category',a.subMinorCategory||'—'],
+      ['Manufacturer',a.manufacturer||'—'],['Model',a.model||'—'],
+      ['Asset Type',a.assetType||'—'],['Qty',a.qty||'—']
+    ];
+    const photos=a.photos.map(img=>`<img src="${img}" style="width:95px;height:70px;object-fit:cover;border-radius:3px;margin:2px;border:1px solid #D4DAE0;">`).join('');
+    const statusBadgeStyle=`background:${c}22;border:1.5px solid ${c};border-radius:3px;padding:2px 10px;color:${c};font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;`;
+    return `
+<div style="page-break-inside:avoid;margin-bottom:2px;border-left:3px solid ${c};">
+  <div style="background:#253746;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="background:rgba(255,255,255,.12);width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:white;font-family:monospace;flex-shrink:0;">${String(i+1).padStart(2,'0')}</div>
+      <div>
+        <div style="font-size:8.5px;color:rgba(255,255,255,.4);font-family:monospace;letter-spacing:.06em;text-transform:uppercase;">Asset #${String(i+1).padStart(2,'0')}</div>
+        <div style="font-size:13px;color:#FC4C02;font-family:monospace;font-weight:700;">${idDisplay}</div>
+      </div>
+    </div>
+    ${a.status?`<span style="${statusBadgeStyle}">${a.status}</span>`:'<span style="color:rgba(255,255,255,.3);font-size:9px;">No Status</span>'}
+  </div>
+  <div style="padding:10px 14px;background:white;">
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:8px;">
+      ${fields.map(([k,v])=>`<div style="background:#F0F3F5;border-radius:2px;padding:5px 7px;border:1px solid #D4DAE0;"><div style="font-size:7.5px;font-weight:700;color:#5A7080;text-transform:uppercase;letter-spacing:.06em;margin-bottom:1px;">${k}</div><div style="font-size:11px;font-weight:600;color:#253746;word-break:break-word;">${v}</div></div>`).join('')}
+    </div>
+    ${photos?`<div style="margin-bottom:8px;"><div style="font-size:7.5px;font-weight:700;color:#5A7080;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Photo Evidence</div><div style="display:flex;flex-wrap:wrap;">${photos}</div></div>`:''}
+    <div>
+      <div style="font-size:7.5px;font-weight:700;color:#5A7080;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;">Remarks / Notes</div>
+      <div style="font-size:11.5px;color:#253746;background:#F0F3F5;border-radius:2px;padding:7px 9px;min-height:22px;border:1px solid #D4DAE0;">${a.notes||'<span style="color:#8FA5B5;font-style:italic">None</span>'}</div>
+    </div>
+  </div>
+</div>`;
+  }).join('');
+
+  // ── STATUS SUMMARY ROW ──
+  const statusSummary=STATUSES.filter(s=>sc[s]>0).map(s=>{
+    const c=SCOLORS[s];
+    return `<div style="display:flex;align-items:center;gap:5px;"><div style="width:8px;height:8px;border-radius:50%;background:${c};flex-shrink:0;"></div><span style="font-size:10px;font-weight:600;color:#253746;">${sc[s]} ${s}</span></div>`;
+  }).join('');
+
+  return `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;max-width:760px;margin:0 auto;color:#253746;">
+
+  <!-- DOC HEADER — matches HO checklist style -->
+  <div style="background:#253746;border-radius:6px 6px 0 0;display:grid;grid-template-columns:200px 1fr;border-bottom:3px solid #FC4C02;margin-bottom:0;">
+    <!-- LEFT: Logo + title -->
+    <div style="padding:16px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;text-align:center;border-right:1px solid rgba(255,255,255,.08);">
+      <img src="data:image/png;base64,${logo_b64}" style="height:36px;width:auto;object-fit:contain;">
+      <div style="font-size:12px;font-weight:700;color:white;line-height:1.3;">Asset Field <span style="color:#FC4C02;">Inspection</span></div>
+      <div style="font-size:9px;color:rgba(255,255,255,.4);letter-spacing:.04em;">CIVIL OPERATIONS · TAWAL</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:8.5px;color:rgba(255,255,255,.3);letter-spacing:.04em;flex-wrap:wrap;justify-content:center;">
+        <span>${SID}</span><span style="opacity:.4">·</span><span>${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</span>
+      </div>
+    </div>
+    <!-- RIGHT: Field grid -->
+    <div style="padding:12px 16px;">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px 14px;">
+        ${[
+          ['Technician',tech],['Date',date],['Session',SID],
+          ['Zone',zone],['Region',region],
+          ['Tawal Site ID',site],['STC Site ID',stc],['Assets Inspected',''+total]
+        ].map(([k,v])=>`
+          <div style="display:flex;flex-direction:column;gap:2px;">
+            <label style="font-size:8.5px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:.08em;text-transform:uppercase;">${k}</label>
+            <div style="background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.2);color:${k==='Assets Inspected'?'#FC4C02':'white'};font-size:${k==='Assets Inspected'?'16':'12'}px;font-weight:${k==='Assets Inspected'?'800':'400'};padding:2px 2px;font-family:${k==='Assets Inspected'?'monospace':'inherit'};">${v}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+  </div>
+
+  <!-- OUTCOME BANNER -->
+  <div style="background:${outcomeBg};border:2px solid ${outcomeColor};border-top:none;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:18px;">${outcomeIcon}</span>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:${outcomeColor};">${outcomeLabel}</div>
+        <div style="font-size:10px;color:#5A7080;">${total} asset${total!==1?'s':''} inspected · ${goodPct}% Good</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">${statusSummary}</div>
+  </div>
+
+  <!-- SECTION: ASSETS -->
+  <div style="background:#253746;padding:7px 14px;display:flex;align-items:center;gap:8px;margin-bottom:0;">
+    <div style="width:3px;align-self:stretch;background:#FC4C02;border-radius:2px;flex-shrink:0;"></div>
+    <div style="background:rgba(255,255,255,.18);width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;font-family:monospace;flex-shrink:0;">1</div>
+    <div style="font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:white;flex:1;">Asset Records</div>
+    <div style="font-size:10px;font-weight:700;color:#FC4C02;font-family:monospace;background:rgba(252,76,2,.15);padding:2px 8px;border-radius:3px;">${total} items</div>
+  </div>
+
+  ${rows}
+
+  <!-- FOOTER -->
+  <div style="margin-top:16px;border-top:1px solid #D4DAE0;padding-top:10px;display:flex;justify-content:space-between;font-size:9px;color:#8FA5B5;">
+    <span>TAWAL Civil Operations · Asset Field Inspection · ${SID}</span>
+    <span>Generated: ${new Date().toLocaleString()}</span>
+  </div>
+</div>`;
+}
+
+async function exportPDF(){
+  if(assets.length===0){toast('Add at least one asset first');return;}
+  showProgress('Generating PDF…',0,'Preparing…');
+  const btn=document.getElementById('exportBtn');btn.disabled=true;
+
+  const tech=document.getElementById('techName').value||'N/A';
+  const date=document.getElementById('visitDate').value||'N/A';
+  const zone=document.getElementById('zone').value||'N/A';
+  const region=document.getElementById('region').value||'N/A';
+  const site=document.getElementById('siteId').value||'N/A';
+  const stc=document.getElementById('stcId').value||'N/A';
+  const sc={};STATUSES.forEach(s=>sc[s]=assets.filter(a=>a.status===s).length);
+  const sumItems=STATUSES.filter(s=>sc[s]>0).map(s=>`<div style="display:flex;align-items:center;gap:4px;margin-right:10px"><div style="width:8px;height:8px;border-radius:50%;background:${SCOLORS[s]}"></div><span style="font-size:11px">${sc[s]} ${s}</span></div>`).join('');
+
+  const headerHTML=`
+<div style="font-family:Arial,sans-serif;max-width:720px;margin:0 auto;padding:20px;color:#253746;">
+  <div style="background:#253746;border-radius:8px;padding:14px 18px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
+    <div><img src="data:image/jpeg;base64,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" style="height:30px;width:auto;object-fit:contain;display:block;margin-bottom:6px;"><div style="font-size:9px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.1em">Asset Field Inspection Report</div></div>
+    <div style="text-align:right;font-family:monospace"><div style="font-size:8px;color:rgba(255,255,255,.35)">SESSION</div><div style="font-size:12px;color:#FC4C02;font-weight:700">${SID}</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:10px">
+    ${[['Technician',tech],['Date',date],['Zone / Region',zone+' / '+region],['Site ID',site]].map(([k,v])=>`<div style="background:#f7f9fb;border-radius:6px;padding:7px 9px;border:1px solid #e2e7ec"><div style="font-size:8px;font-weight:700;color:#6b8299;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">${k}</div><div style="font-size:11.5px;font-weight:600">${v}</div></div>`).join('')}
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px">
+    ${[['STC ID',stc],['Assets Inspected',''+assets.length]].map(([k,v])=>`<div style="background:#f7f9fb;border-radius:6px;padding:7px 9px;border:1px solid #e2e7ec"><div style="font-size:8px;font-weight:700;color:#6b8299;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">${k}</div><div style="font-size:${k==='Assets Inspected'?'20':'11.5'}px;font-weight:${k==='Assets Inspected'?'800':'600'};color:${k==='Assets Inspected'?'#FC4C02':'#253746'}">${v}</div></div>`).join('')}
+  </div>
+  ${sumItems?`<div style="background:#f7f9fb;border-radius:6px;padding:9px 12px;margin-bottom:12px;border:1px solid #e2e7ec;display:flex;flex-wrap:wrap;align-items:center;gap:4px"><span style="font-size:8.5px;font-weight:700;color:#6b8299;text-transform:uppercase;letter-spacing:.06em;margin-right:6px">Status</span>${sumItems}</div>`:''}`;
+
+  const footerHTML=`<div style="margin-top:16px;border-top:1px solid #e2e7ec;padding-top:10px;display:flex;justify-content:space-between;font-size:9px;color:#6b8299"><span>TAWAL Civil Operations · Asset Field Inspection</span><span>${new Date().toLocaleString()}</span></div></div>`;
+
+  // Build asset rows
+  const assetRowsHTML=assets.map((a,i)=>{
+    updateProgress('Building asset '+(i+1)+' of '+assets.length+'…',Math.round((i+1)/assets.length*60));
+    const c=SCOLORS[a.status]||'#6b8299';
+    const idDisplay=a.assetNumber?'Asset# '+a.assetNumber:a.tagNumber?'Tag# '+a.tagNumber:'—';
+    const fields=[
+      ['Tag #',a.tagNumber||'—'],['Asset #',a.assetNumber||'—'],
+      ['Description',a.assetDescription||'—'],['Major Category',a.majorCategory||'—'],
+      ['Minor Category',a.minorCategory||'—'],['Sub-Minor',a.subMinorCategory||'—'],
+      ['Manufacturer',a.manufacturer||'—'],['Model',a.model||'—'],
+      ['Asset Type',a.assetType||'—'],['Qty',a.qty||'—']
+    ];
+    const photos=a.photos.map(img=>`<img src="${img}" style="width:95px;height:70px;object-fit:cover;border-radius:4px;margin:2px;border:1px solid #e2e7ec">`).join('');
+    return`<div style="page-break-inside:avoid;margin-bottom:14px;border:1px solid #e2e7ec;border-radius:8px;overflow:hidden;border-left:4px solid ${c}">
+      <div style="background:#253746;padding:8px 12px;display:flex;justify-content:space-between;align-items:center">
+        <div><div style="font-size:8.5px;color:rgba(255,255,255,.4);font-family:monospace">ASSET #${String(i+1).padStart(2,'0')}</div>
+        <div style="font-size:13px;color:#FC4C02;font-family:monospace;font-weight:700">${idDisplay}</div></div>
+        <div style="background:${c}22;border:1px solid ${c};border-radius:4px;padding:2px 9px;color:${c};font-size:9.5px;font-weight:700">${a.status||'No Status'}</div>
+      </div>
+      <div style="padding:10px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:8px">
+          ${fields.map(([k,v])=>`<div style="background:#f7f9fb;border-radius:4px;padding:5px 7px;border:1px solid #e2e7ec"><div style="font-size:7.5px;font-weight:700;color:#6b8299;text-transform:uppercase;margin-bottom:1px">${k}</div><div style="font-size:11px;font-weight:600;color:#253746;word-break:break-word">${v}</div></div>`).join('')}
+        </div>
+        ${photos?`<div style="margin-bottom:7px"><div style="font-size:7.5px;font-weight:700;color:#6b8299;text-transform:uppercase;margin-bottom:4px">Photos</div><div style="display:flex;flex-wrap:wrap">${photos}</div></div>`:''}
+        <div style="font-size:7.5px;font-weight:700;color:#6b8299;text-transform:uppercase;margin-bottom:3px">Remarks</div>
+        <div style="font-size:11.5px;color:#253746;background:#f7f9fb;border-radius:4px;padding:7px;min-height:24px">${a.notes||'<span style="color:#9ba3b5;font-style:italic">None</span>'}</div>
+      </div></div>`;
+  }).join('');
+
+  const fullHTML=headerHTML+assetRowsHTML+footerHTML;
+  const wrapper=document.createElement('div');
+  wrapper.style.cssText='position:absolute;left:-9999px;top:0';
+  wrapper.innerHTML=fullHTML;
+  document.body.appendChild(wrapper);
+
+  updateProgress('Rendering PDF…',70,'This may take a moment for large reports');
+  const fname=`TAWAL_Inspection_${(document.getElementById('siteId').value||'site').replace(/\s+/g,'_')}_${date}.pdf`;
+
+  try{
+    await html2pdf().set({
+      margin:[7,7,7,7],filename:fname,
+      image:{type:'jpeg',quality:0.80},
+      html2canvas:{scale:1.5,useCORS:true,logging:false,allowTaint:true},
+      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+      pagebreak:{mode:['css','legacy']}
+    }).from(wrapper).save();
+    updateProgress('Done!',100,'PDF saved');
+    setTimeout(()=>hideProgress(),800);
+    toast('✓ PDF exported — '+assets.length+' assets');
+  }catch(e){
+    console.error(e);
+    hideProgress();
+    toast('PDF failed — try JSON export instead');
+  }
+  document.body.removeChild(wrapper);
+  btn.disabled=false;
+}
+
+function showProgress(msg,pct,sub){
+  document.getElementById('progressOverlay').classList.add('show');
+  document.getElementById('progTxt').textContent=msg;
+  document.getElementById('progBar').style.width=pct+'%';
+  document.getElementById('progSub').textContent=sub||'';
+}
+function updateProgress(msg,pct,sub){
+  document.getElementById('progTxt').textContent=msg;
+  document.getElementById('progBar').style.width=pct+'%';
+  if(sub)document.getElementById('progSub').textContent=sub;
+}
+function hideProgress(){document.getElementById('progressOverlay').classList.remove('show');}
+
+// ── JSON EXPORT (for System 2 aggregator) ──
+function exportJSON(){
+  if(assets.length===0){toast('No assets to export');return;}
+  const session={
+    sessionId:SID,
+    exportedAt:new Date().toISOString(),
+    technician:document.getElementById('techName').value,
+    date:document.getElementById('visitDate').value,
+    zone:document.getElementById('zone').value,
+    region:document.getElementById('region').value,
+    siteId:document.getElementById('siteId').value,
+    stcId:document.getElementById('stcId').value,
+    assetCount:assets.length,
+    assets:assets.map(a=>({
+      tagNumber:a.tagNumber,
+      assetNumber:a.assetNumber,
+      assetDescription:a.assetDescription,
+      majorCategory:a.majorCategory,
+      minorCategory:a.minorCategory,
+      subMinorCategory:a.subMinorCategory,
+      manufacturer:a.manufacturer,
+      model:a.model,
+      assetType:a.assetType,
+      qty:a.qty,
+      status:a.status,
+      notes:a.notes,
+      photoCount:a.photos.length
+      // photos excluded from JSON to keep file small; PDF has photos
+    }))
+  };
+  const blob=new Blob([JSON.stringify(session,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`TAWAL_Inspection_${session.siteId||'site'}_${session.date||'nodate'}.json`;
+  a.click();URL.revokeObjectURL(url);
+  toast('✓ JSON exported — upload to Asset Count Program for FAR matching');
+}
+
+function resetAll(){
+  if(assets.length>0&&!confirm('Reset all data? This cannot be undone.'))return;
+  assets=[];counter=0;
+  ['techName','siteId','stcId'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    el.value='';el.disabled=false;el.style.color='';el.style.fontStyle='';el.style.background='';
+    const btn=document.getElementById(id+'_na_btn');
+    if(btn){btn.textContent='N/A';btn.style.background='';btn.style.color='';btn.style.borderColor='';}
+  });
+  ['zone','region'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('visitDate').value=new Date().toISOString().split('T')[0];
+  updateRegions();
+  renderAssets();
+  toast('Form reset');
+}
+
+renderAssets();
+</script>
+</body>
+</html>
